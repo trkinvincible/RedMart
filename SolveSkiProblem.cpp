@@ -5,6 +5,9 @@
 #include <list>
 #include <array>
 #include <fstream>
+#include <ctime>
+
+#define _CRT_SECURE_NO_WARNINGS
 
 using namespace std;
 
@@ -14,15 +17,20 @@ private:
 	static int** mMap;
 	std::multimap<int, std::list<int>> mpathsList;
 	int mapindex;
-	const int ROWCOUNT = 1000;
-	const int COLUMNCOUNT = 1000;
+	static const int ROWCOUNT = 1000;
+	static const int COLUMNCOUNT = 1000;
 	enum{
 		top   = (1 << 0),
 		down  = (1 << 1),
 		left  = (1 << 2),
-		right = (1 << 3)
+		right = (1 << 3),
+		specialindex = 2048
 	};
 public:
+	Utility()
+	{
+		mapindex = 0;
+	}
 	std::multimap<int, std::list<int>> getmpathsList()
 	{
 		return mpathsList;
@@ -45,6 +53,10 @@ public:
 
 			for (int i = 0; i < COLUMNCOUNT; i++)
 			{
+				if(row[i] & 2048)
+				{
+					continue;
+				}
 				std::list<int> dummylist;
 				dummylist.push_back(row[i]);
 				cout << "Row : " << j << "\tColumn: " << i << "\n";
@@ -96,6 +108,12 @@ public:
 			left = mMap[rowindex][columnindex - 1];
 		if (columnindex + 1 < COLUMNCOUNT)
 			right = mMap[rowindex][columnindex + 1];
+		
+		centre &= ~(specialindex);
+		top &= ~(specialindex);
+		down &= ~(specialindex);
+		left &= ~(specialindex);
+		right &= ~(specialindex);
 
 		int deltatop = centre - top;
 		int deltadown = centre - down;
@@ -152,7 +170,13 @@ public:
 			{
 				directions |= left;
 			}
+
+			mMap[temprowindex][tempcolumnindex] &= ~(specialindex);
 			templist.push_back(mMap[temprowindex][tempcolumnindex]);
+			int value = mMap[temprowindex][tempcolumnindex];
+			value |= specialindex;
+			mMap[temprowindex][tempcolumnindex] = value;
+
 			findwhichdirectiontomove(tempcolumnindex + (temprowindex * COLUMNCOUNT), templist);
 			templist.pop_back();
 		}
@@ -201,6 +225,10 @@ FileDecoder *FileDecoder::mthisObject = NULL;
 
 int main()
 {
+	time_t now = time(0);
+	char* dt = ctime(&now);
+	cout << "The local date and time is: " << dt << endl;
+
 	FileDecoder::getInstance()->CreateArrayFromFile("C:/Users/Naveetha R/Documents/Visual Studio 2013/Projects/practice/practice/map.txt");
 
 	Utility obj;
@@ -237,6 +265,10 @@ int main()
 		cout << *itr1 << " ";
 	}
 	cout << "\nsize: " << finalpath.size() << " and Drop: " << depth;
+
+	time_t now1 = time(0);
+	char* dt1 = ctime(&now1);
+	cout << "The local date and time is: " << dt1 << endl;
 
 	getchar();
 	return 0;
